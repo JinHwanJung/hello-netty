@@ -9,11 +9,20 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        ctx.write(msg);
-        ctx.flush();
+        // Discard the received data silently
+        ByteBuf in = (ByteBuf) msg;
+        try {
+            while (in.isReadable()) {
+                System.out.println((char)in.readByte());
+                System.out.flush();
+            }
+
+        } finally {
+            ReferenceCountUtil.release(msg);
+        }
     }
 
-    // Usually, channelRead() handler method is implemented like the flowing:
+// Usually, channelRead() handler method is implemented like the flowing:
 //    @Override
 //    public void channelRead(ChannelHandlerContext ctx, Object msg) {
 //        try {
@@ -22,6 +31,7 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 //            ReferenceCountUtil.release(msg);
 //        }
 //    }
+
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         cause.printStackTrace();
